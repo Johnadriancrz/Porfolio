@@ -4,15 +4,15 @@ import FadeUp from "@/components/animations/FadeUp"
 
 export default function TechStack() {
   return (
-    <section id="techstack" className="w-full max-w-7xl mx-auto py-24 md:py-32 cursor-default bg-background relative border-t border-text-secondary/10 overflow-hidden">
+    <section id="techstack" className="w-full max-w-5xl mx-auto py-24 md:py-32 cursor-default bg-background relative border-t border-text-secondary/10 overflow-hidden">
       <FadeDown>
-        <div className="max-w-7xl mx-auto px-6 md:px-12 mb-16 md:mb-24 w-full text-left">
+        <div className="max-w-5xl mx-auto px-6 md:px-8 mb-16 md:mb-24 w-full text-left">
           <h2 className="text-sm font-bold tracking-[0.2em] text-text-secondary uppercase mb-4">Skills & Tools</h2>
           <h3 className="text-4xl md:text-5xl lg:text-6xl font-black text-text-primary tracking-tighter">My Tech Stack</h3>
         </div>
       </FadeDown>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col gap-16">
+      <div className="max-w-5xl mx-auto px-6 md:px-8 flex flex-col gap-16">
         {techCategories.map((category, idx) => (
           <div key={idx} className="flex flex-col md:flex-row gap-8 md:gap-16 items-start">
             <div className="md:w-1/3">

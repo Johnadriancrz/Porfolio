@@ -40,9 +40,9 @@ export default function PageLoader() {
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-              className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter"
+              className="text-3xl sm:text-4xl md:text-5xl font-black text-text-primary tracking-tighter whitespace-nowrap"
             >
-              RyHar
+              John Adrian Cruz
               <span className="text-thirdary">.</span>
             </motion.div>
           </div>

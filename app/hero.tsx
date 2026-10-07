@@ -47,13 +47,13 @@ export default function Hero() {
 
   return (
     <>
-      <section id="home" className="w-full max-w-7xl mx-auto cursor-default grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-center px-6 md:px-12 py-24 md:py-32 overflow-hidden">
+      <section id="home" className="w-full max-w-5xl mx-auto cursor-default grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-start px-6 md:px-8 pt-36 pb-24 md:pt-52 md:pb-32 overflow-hidden">
         <FadeLeft>
           <div className="flex flex-col gap-2">
             <div>
               <h1 className="text-text-primary text-4xl md:text-5xl lg:text-7xl font-black tracking-tighter leading-tight">
                 Hi, I&apos;m
-                <span className="text-transparent bg-clip-text bg-linear-to-r from-text-primary to-text-secondary"> Rizki</span>
+                <span className="text-transparent bg-clip-text bg-linear-to-r from-text-primary to-text-secondary"> Adrian</span>
               </h1>
             </div>
 
@@ -63,7 +63,7 @@ export default function Hero() {
             </div>
 
             <div className="max-w-xl mt-4">
-              <p className="text-text-secondary text-base md:text-lg leading-relaxed font-medium">Halo! Saya suka ngoding dan bereksperimen dengan ide-ide baru. Bagi saya, setiap baris kode adalah cara untuk menghadirkan sesuatu yang bermanfaat dan keren di dunia digital.</p>
+              <p className="text-text-secondary text-base md:text-lg leading-relaxed font-medium">I'm a Web Developer, 22 years old, focused on building responsive and elegant web and mobile applications. In my free time, I enjoy learning new things.</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
@@ -95,22 +95,15 @@ export default function Hero() {
         </FadeLeft>
 
         <FadeRight>
-          <div className="flex flex-col items-center justify-center relative mt-12 md:mt-0">
+          <div className="flex flex-col items-center justify-center relative mt-12 md:-mt-10">
             {/* Subtle aesthetic backdrop instead of neon glow */}
             <div className="absolute inset-0 bg-linear-to-tr from-thirdary to-background rounded-full scale-110 opacity-50 blur-2xl"></div>
 
-            <div className="relative z-10 p-2 bg-background border border-text-secondary/10 rounded-full shadow-2xl">
-              <Image src="/images/hero.jpg" alt="Ahmad Rizki Hartawan" width={400} height={400} className="rounded-full object-cover aspect-square floating transition-all duration-700" priority />
-            </div>
-
-            {/* Quick Stats redesigned as floating minimal badges */}
-            <div className="absolute -bottom-10 md:-bottom-12 -left-4 md:-left-12 z-20 flex flex-col gap-3">
-              {quickStatsList.map((stat, index) => (
-                <div className={`floating flex items-center gap-3 bg-background/90 backdrop-blur-md border border-text-secondary/10 p-3 pr-5 rounded-2xl shadow-xl hover:-translate-y-1 transition-transform duration-300 animate-in fade-in slide-in-from-bottom-5`} style={{ animationDelay: `${index * 150}ms` }} key={index}>
-                  <div className="bg-text-primary text-background p-2 rounded-xl">{stat.icon}</div>
-                  <span className="text-xs md:text-sm font-semibold text-text-primary whitespace-nowrap">{stat.message}</span>
-                </div>
-              ))}
+            <div className="relative z-10 p-2 bg-background border border-text-secondary/10 rounded-full shadow-2xl floating">
+              {/* Scale from the bottom so the subject sits higher inside the circle */}
+              <div className="rounded-full overflow-hidden">
+                <Image src="/images/avatar.jpg" alt="John Adrian Cruz" width={400} height={400} quality={95} sizes="(min-width: 768px) 560px, 400px" className="object-cover object-top aspect-square scale-110 origin-bottom" priority />
+              </div>
             </div>
           </div>
         </FadeRight>
@@ -141,33 +134,6 @@ const socialMediaList = [
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
         <path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z" />
-      </svg>
-    ),
-  },
-]
-
-const quickStatsList = [
-  {
-    message: "2+ Years of Experience",
-    icon: (
-      <svg className="w-5 md:w-6 text-text-background" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-      </svg>
-    ),
-  },
-  {
-    message: "Javascript Main Language",
-    icon: (
-      <svg className="w-5 md:w-6 text-text-background" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m8 8-4 4 4 4m8 0 4-4-4-4m-2-3-4 14" />
-      </svg>
-    ),
-  },
-  {
-    message: "Fullstack developer",
-    icon: (
-      <svg className="w-5 md:w-6 text-text-background" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5M5 12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2M5 12h14m-7 4v3m-4 0h8" />
       </svg>
     ),
   },

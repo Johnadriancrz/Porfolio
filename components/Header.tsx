@@ -72,10 +72,10 @@ export default function Header() {
           <div className="relative flex items-center justify-between py-3 md:py-4 px-6 md:px-8 bg-background/80 backdrop-blur-md border border-text-secondary/20 rounded-full shadow-lg transition-colors duration-300">
             <div className="flex flex-row items-center">
               {/* Typographic Logo */}
-              <span className="text-xl md:text-2xl font-black text-text-primary tracking-tighter">PORTFOLIO.</span>
+              <span className="text-lg md:text-xl font-black text-text-primary tracking-tighter">John Adrian.</span>
             </div>
 
-            <nav className="flex-row md:gap-8 lg:gap-10 hidden lg:flex items-center">
+            <nav className="absolute left-1/2 -translate-x-1/2 flex-row md:gap-8 lg:gap-10 hidden lg:flex items-center">
               {shortCut.map((item, index) => (
                 <button 
                   onClick={() => handleScroll(item.link)} 

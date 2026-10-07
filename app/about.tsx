@@ -9,52 +9,51 @@ export default function About() {
 
   return (
     <>
-      <section id="about" className="w-full max-w-7xl mx-auto py-24 md:py-32 cursor-default bg-background overflow-hidden border-t border-text-secondary/10">
+      <section id="about" className="w-full max-w-5xl mx-auto py-24 md:py-32 cursor-default bg-background overflow-hidden border-t border-text-secondary/10">
         <FadeDown>
-          <div className="max-w-7xl mx-auto px-6 md:px-12 mb-16 md:mb-24 w-full text-left">
+          <div className="max-w-5xl mx-auto px-6 md:px-8 mb-16 md:mb-24 w-full text-left">
             <h2 className="text-sm font-bold tracking-[0.2em] text-text-secondary uppercase mb-4">Discover</h2>
             <h3 className="text-4xl md:text-5xl lg:text-6xl font-black text-text-primary tracking-tighter">About Me</h3>
           </div>
         </FadeDown>
 
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 px-6 md:px-12">
-          
-          <div className="lg:col-span-5 hidden lg:flex flex-col items-center lg:items-center justify-center relative">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 lg:items-start gap-12 lg:gap-20 px-6 md:px-8">
+
+          <div className="lg:col-span-5 hidden lg:flex flex-col items-center justify-start relative">
             <div className="w-full max-w-[350px] lg:max-w-[450px] relative">
               <Fade>
-                <div className="relative z-10 p-2 bg-background border border-text-secondary/10 rounded-3xl shadow-2xl overflow-hidden aspect-[4/5] w-full group transition-all duration-500 hover:shadow-[0_20px_40px_-5px_rgb(0,0,0,0.15)] dark:hover:shadow-[0_20px_40px_-5px_rgba(255,255,255,0.05)] hover:-translate-y-1">
+                <div className="relative z-10 p-2 bg-background border border-text-secondary/10 rounded-3xl overflow-hidden aspect-[4/5] w-full group transition-all duration-500 hover:-translate-y-1">
                   <Image 
-                    src="/images/hero.jpg" 
+                    src="/images/avatar.jpg"
                     alt="Ahmad Rizki Hartawan" 
                     fill 
-                    className="object-cover transition-all duration-700 scale-100 group-hover:scale-105" 
+                    className="object-cover origin-bottom transition-all duration-700 scale-115 group-hover:scale-120"
                     sizes="(max-width: 1024px) 100vw, 500px"
                   />
-                  <div className="absolute inset-0 bg-linear-to-t from-background/80 to-transparent opacity-60 group-hover:opacity-20 transition-opacity duration-500 rounded-3xl"></div>
                 </div>
                 <div className="absolute -bottom-8 -left-8 text-8xl lg:text-9xl font-black text-text-secondary/5 select-none pointer-events-none tracking-tighter mix-blend-multiply dark:mix-blend-screen z-0">DEV.</div>
               </Fade>
             </div>
           </div>
 
-          <div className="lg:col-span-7 flex flex-col justify-center">
+          <div className="lg:col-span-7 flex flex-col justify-start">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
               <div className="flex flex-col">
                 <Fade>
                   <h4 className="text-lg md:text-xl font-bold text-text-primary mb-4 flex items-center border-b border-text-secondary/20 pb-4">Who Am I</h4>
-                  <p className="text-base text-text-secondary leading-relaxed font-medium">Saya Full Stack Developer yang berpengalaman dalam merancang dan mengembangkan aplikasi web menggunakan Node.js, Express.js, Laravel, React, Next.js, TypeScript, Prisma, dan MySQL. Saya terampil dalam membangun REST APIs, mengintegrasikan layanan pihak ketiga, dan sistem otomatisasi.</p>
+                  <p className="text-base text-text-secondary leading-relaxed font-medium">I am an experienced Full Stack Developer who designs and builds web applications using Node.js, Express.js, Laravel, React, Next.js, TypeScript, Prisma, and MySQL. I am skilled at building REST APIs, integrating third-party services, and developing automation systems.</p>
                 </Fade>
               </div>
               
               <div className="flex flex-col">
                 <Fade>
                   <h4 className="text-lg md:text-xl font-bold text-text-primary mb-4 flex items-center border-b border-text-secondary/20 pb-4">My Approach</h4>
-                  <p className="text-base text-text-secondary leading-relaxed font-medium">Saya berkomitmen untuk memberikan solusi yang efisien, mudah dikelola, dan skalabel melalui praktik terbaik pengembangan perangkat lunak (best software development practices).</p>
+                  <p className="text-base text-text-secondary leading-relaxed font-medium">I am committed to delivering efficient, maintainable, and scalable solutions through best software development practices.</p>
                 </Fade>
               </div>
             </div>
 
-            <div className="mt-16 md:mt-20">
+            <div className="mt-10 md:mt-12">
               <Fade>
                 <h4 className="text-lg md:text-xl font-bold text-text-primary mb-8 border-b border-text-secondary/20 pb-4 border-l-4 border-l-text-primary pl-4">Personal Details</h4>
               </Fade>
@@ -63,36 +62,29 @@ export default function About() {
                 <FadeLeft delay={0.1}>
                   <div className="flex flex-col p-2 -m-2 rounded-xl transition-colors duration-300 hover:bg-thirdary/40">
                     <span className="text-xs uppercase tracking-widest font-bold text-text-secondary mb-1">Name</span>
-                    <span className="text-base font-semibold text-text-primary">Ahmad Rizki Hartawan</span>
+                    <span className="text-base font-semibold text-text-primary">John Adrian B. Cruz</span>
                   </div>
                 </FadeLeft>
 
                 <FadeLeft delay={0.2}>
                   <div className="flex flex-col p-2 -m-2 rounded-xl transition-colors duration-300 hover:bg-thirdary/40">
                     <span className="text-xs uppercase tracking-widest font-bold text-text-secondary mb-1">Place of Birth</span>
-                    <span className="text-base font-semibold text-text-primary">Palembang, Indonesia</span>
+                    <span className="text-base font-semibold text-text-primary">Quezon City, Philippines</span>
                   </div>
                 </FadeLeft>
 
                 <FadeLeft delay={0.3}>
                   <div className="flex flex-col p-2 -m-2 rounded-xl transition-colors duration-300 hover:bg-thirdary/40">
                     <span className="text-xs uppercase tracking-widest font-bold text-text-secondary mb-1">Phone</span>
-                    <span className="text-base font-semibold text-text-primary">+62 895-0818-8642</span>
-                  </div>
-                </FadeLeft>
-
-                <FadeLeft delay={0.4}>
-                  <div className="flex flex-col p-2 -m-2 rounded-xl transition-colors duration-300 hover:bg-thirdary/40">
-                    <span className="text-xs uppercase tracking-widest font-bold text-text-secondary mb-1">GPA</span>
-                    <span className="text-base font-semibold text-text-primary">3.67</span>
+                    <span className="text-base font-semibold text-text-primary">+63 995-355-1650</span>
                   </div>
                 </FadeLeft>
 
                 <FadeLeft delay={0.5}>
                   <div className="flex flex-col p-2 -m-2 rounded-xl transition-colors duration-300 hover:bg-thirdary/40">
                     <span className="text-xs uppercase tracking-widest font-bold text-text-secondary mb-1">Email</span>
-                    <a href="mailto:a.rizkihartawan04@gmail.com" className="text-base font-semibold text-text-primary hover:text-text-secondary transition-colors underline decoration-text-secondary/30 underline-offset-4">
-                      a.rizkihartawan04@gmail.com
+                    <a href="mailto:johnbarbozacruz@gmail.com" className="text-base font-semibold text-text-primary hover:text-text-secondary transition-colors underline decoration-text-secondary/30 underline-offset-4">
+                      johnbarbozacruz@gmail.com
                     </a>
                   </div>
                 </FadeLeft>
@@ -100,7 +92,7 @@ export default function About() {
                 <FadeLeft delay={0.6}>
                   <div className="flex flex-col p-2 -m-2 rounded-xl transition-colors duration-300 hover:bg-thirdary/40">
                     <span className="text-xs uppercase tracking-widest font-bold text-text-secondary mb-1">Education</span>
-                    <span className="text-base font-semibold text-text-primary">Universitas Multi Data Palembang</span>
+                    <span className="text-base font-semibold text-text-primary">Bulacan State University - Malolos</span>
                   </div>
                 </FadeLeft>
               </div>
