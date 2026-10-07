@@ -1,10 +1,9 @@
-# RyHar Portfolio v2
+# John Adrian Cruz Portfolio
 
 A modern, interactive, and responsive personal portfolio website built to showcase projects, skills, and experience.
 
 ## 🌐 Live Demo
 
-Check out the live website here: **[https://ryhar.my.id](https://ryhar.my.id)**
 
 ## 🚀 Features
 
