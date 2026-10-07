@@ -156,6 +156,11 @@ html {
   transition: transform 0.3s ease;
 }
 
+/* Icons drawn in black/near-black become invisible on the dark theme */
+.dark .tech-icon-invert {
+  filter: brightness(0) invert(1);
+}
+
 /* 🔄 Animasi Infinite Scroll */
 @keyframes infinite-scroll {
   from {

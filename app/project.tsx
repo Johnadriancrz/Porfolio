@@ -8,6 +8,28 @@ import GlareHover from "@/components/GlareHover"
 
 export default function Project() {
   const [isOpen, setIsOpen] = useState<number | null>(null)
+  const total = projectList.length
+  // On phones there is no room for three cards, so the highlighted card must always be centered on screen
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)")
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener("change", update)
+    return () => mq.removeEventListener("change", update)
+  }, [])
+  // The desktop carousel shows at most 3 cards at once, so with 3 or fewer everything is already on screen and navigation is locked
+  const isStatic = total <= 3 && !isMobile
+  // `active` is the highlighted (full size) card; it can be any card, including the first and last
+  const [active, setActive] = useState(total <= 3 ? Math.floor((total - 1) / 2) : 0)
+  // On desktop the 3-card window follows the highlight but never slides past the ends, so there is never an empty slot.
+  // The highlighted card then sits in the left or right slot of the window when it is the first or last card.
+  // On mobile the window is always centered on the highlighted card.
+  const windowCenter = isMobile ? active : isStatic ? (total - 1) / 2 : Math.min(Math.max(active, 1), total - 2)
+  const isFirst = isStatic || active === 0
+  const isLast = isStatic || active === total - 1
+  // Stops at both ends instead of looping
+  const paginate = (dir: number) => !isStatic && setActive((prev) => Math.min(Math.max(prev + dir, 0), total - 1))
 
   // Prevent scrolling when modal is open
   useEffect(() => {
@@ -21,6 +43,7 @@ export default function Project() {
     }
   }, [isOpen])
 
+
   const activeProject = projectList.find((p) => p.index === isOpen)
 
   return (
@@ -33,158 +56,87 @@ export default function Project() {
           </div>
         </FadeDown>
 
-        {/* Desktop View: Grid */}
-        <div className="hidden lg:grid max-w-5xl mx-auto grid-cols-3 gap-8 px-6 md:px-8">
-          {projectList.map((project, index) => (
-            <FadeUp key={`desktop-${index}`}>
-              <GlareHover className="group flex flex-col h-full bg-background border border-text-secondary/20 hover:border-text-primary/50 rounded-xl overflow-hidden transition-all duration-500 shadow-sm hover:shadow-2xl">
-                <div className="relative overflow-hidden aspect-[16/10] bg-text-secondary/5 border-b border-text-secondary/10">
-                  <Image src={project.imagePath} alt={project.title} fill className="object-cover transition-all duration-700 group-hover:scale-105" />
-
-                  {/* Tech Stack Overlay */}
-                  <div className="absolute top-4 right-4 flex flex-wrap gap-2 justify-end z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-[-10px] group-hover:translate-y-0">
-                    {project.tech.slice(0, 3).map((tech, i) => (
-                      <span key={i} className="text-[10px] font-bold bg-background/90 text-text-primary px-2 py-1 rounded backdrop-blur-md border border-text-secondary/20 uppercase tracking-widest shadow-sm">
-                        {tech}
-                      </span>
-                    ))}
-                    {project.tech.length > 3 && <span className="text-[10px] font-bold bg-background/90 text-text-primary px-2 py-1 rounded backdrop-blur-md border border-text-secondary/20 uppercase tracking-widest shadow-sm">+{project.tech.length - 3}</span>}
-                  </div>
-                </div>
-
-                <div className="p-6 md:p-8 flex flex-col flex-grow relative">
-                  {/* Numbering */}
-                  <div className="absolute top-0 right-6 -translate-y-1/2 bg-background border border-text-secondary/20 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-text-secondary shadow-sm">{String(project.index + 1).padStart(2, "0")}</div>
-
-                  <div className="flex justify-between items-start mb-4">
-                    <h4 className="text-2xl font-black text-text-primary tracking-tight leading-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-text-primary group-hover:to-text-secondary transition-all duration-500">{project.title}</h4>
-                  </div>
-
-                  <p className="text-sm text-text-secondary font-medium leading-relaxed mb-8 flex-grow line-clamp-3">{project.shortDescription}</p>
-
-                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-text-secondary/10">
-                    <button className="text-xs font-bold tracking-[0.2em] uppercase text-text-primary flex items-center gap-3 group/btn" onClick={() => setIsOpen(project.index)}>
-                      View Details
-                      <span className="w-8 h-[2px] bg-text-primary group-hover/btn:w-12 transition-all duration-300"></span>
-                    </button>
-
-                    <a href={project.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="p-2 border border-text-secondary/20 rounded-full text-text-secondary hover:text-background hover:bg-text-primary hover:border-text-primary transition-all duration-300">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              </GlareHover>
-            </FadeUp>
-          ))}
-        </div>
-
-        {/* Mobile & Tablet View: Infinite Loop Slider */}
-        <div className="lg:hidden w-full overflow-hidden relative py-4">
-          <div className="flex w-max animate-infinite-scroll hover:[animation-play-state:paused]">
-            <div className="flex gap-6 px-3">
-              {projectList.map((project, index) => (
-                <div key={`mobile1-${index}`} className="w-[85vw] sm:w-[400px] flex-shrink-0">
-                  <GlareHover className="group flex flex-col h-full bg-background border border-text-secondary/20 hover:border-text-primary/50 rounded-xl overflow-hidden transition-all duration-500 shadow-sm hover:shadow-2xl">
-                    <div className="relative overflow-hidden aspect-[16/10] bg-text-secondary/5 border-b border-text-secondary/10">
-                      <Image src={project.imagePath} alt={project.title} fill className="object-cover transition-all duration-700 group-hover:scale-105" />
-
-                      {/* Tech Stack Overlay */}
-                      <div className="absolute top-4 right-4 flex flex-wrap gap-2 justify-end z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-[-10px] group-hover:translate-y-0">
-                        {project.tech.slice(0, 3).map((tech, i) => (
-                          <span key={i} className="text-[10px] font-bold bg-background/90 text-text-primary px-2 py-1 rounded backdrop-blur-md border border-text-secondary/20 uppercase tracking-widest shadow-sm">
-                            {tech}
-                          </span>
-                        ))}
-                        {project.tech.length > 3 && <span className="text-[10px] font-bold bg-background/90 text-text-primary px-2 py-1 rounded backdrop-blur-md border border-text-secondary/20 uppercase tracking-widest shadow-sm">+{project.tech.length - 3}</span>}
-                      </div>
-                    </div>
-
-                    <div className="p-6 md:p-8 flex flex-col flex-grow relative">
-                      {/* Numbering */}
-                      <div className="absolute top-0 right-6 -translate-y-1/2 bg-background border border-text-secondary/20 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-text-secondary shadow-sm">{String(project.index + 1).padStart(2, "0")}</div>
-
-                      <div className="flex justify-between items-start mb-4">
-                        <h4 className="text-2xl font-black text-text-primary tracking-tight leading-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-text-primary group-hover:to-text-secondary transition-all duration-500">{project.title}</h4>
-                      </div>
-
-                      <p className="text-sm text-text-secondary font-medium leading-relaxed mb-8 flex-grow line-clamp-3">{project.shortDescription}</p>
-
-                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-text-secondary/10">
-                        <button className="text-xs font-bold tracking-[0.2em] uppercase text-text-primary flex items-center gap-3 group/btn" onClick={() => setIsOpen(project.index)}>
-                          View Details
-                          <span className="w-8 h-[2px] bg-text-primary group-hover/btn:w-12 transition-all duration-300"></span>
-                        </button>
-
-                        <a href={project.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="p-2 border border-text-secondary/20 rounded-full text-text-secondary hover:text-background hover:bg-text-primary hover:border-text-primary transition-all duration-300">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </a>
-                      </div>
-                    </div>
-                  </GlareHover>
-                </div>
-              ))}
-            </div>
-            
-            <div className="flex gap-6 px-3">
-              {projectList.map((project, index) => (
-                <div key={`mobile2-${index}`} className="w-[85vw] sm:w-[400px] flex-shrink-0">
-                  <GlareHover className="group flex flex-col h-full bg-background border border-text-secondary/20 hover:border-text-primary/50 rounded-xl overflow-hidden transition-all duration-500 shadow-sm hover:shadow-2xl">
-                    <div className="relative overflow-hidden aspect-[16/10] bg-text-secondary/5 border-b border-text-secondary/10">
-                      <Image src={project.imagePath} alt={project.title} fill className="object-cover transition-all duration-700 group-hover:scale-105" />
-
-                      {/* Tech Stack Overlay */}
-                      <div className="absolute top-4 right-4 flex flex-wrap gap-2 justify-end z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-[-10px] group-hover:translate-y-0">
-                        {project.tech.slice(0, 3).map((tech, i) => (
-                          <span key={i} className="text-[10px] font-bold bg-background/90 text-text-primary px-2 py-1 rounded backdrop-blur-md border border-text-secondary/20 uppercase tracking-widest shadow-sm">
-                            {tech}
-                          </span>
-                        ))}
-                        {project.tech.length > 3 && <span className="text-[10px] font-bold bg-background/90 text-text-primary px-2 py-1 rounded backdrop-blur-md border border-text-secondary/20 uppercase tracking-widest shadow-sm">+{project.tech.length - 3}</span>}
-                      </div>
-                    </div>
-
-                    <div className="p-6 md:p-8 flex flex-col flex-grow relative">
-                      {/* Numbering */}
-                      <div className="absolute top-0 right-6 -translate-y-1/2 bg-background border border-text-secondary/20 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-text-secondary shadow-sm">{String(project.index + 1).padStart(2, "0")}</div>
-
-                      <div className="flex justify-between items-start mb-4">
-                        <h4 className="text-2xl font-black text-text-primary tracking-tight leading-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-text-primary group-hover:to-text-secondary transition-all duration-500">{project.title}</h4>
-                      </div>
-
-                      <p className="text-sm text-text-secondary font-medium leading-relaxed mb-8 flex-grow line-clamp-3">{project.shortDescription}</p>
-
-                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-text-secondary/10">
-                        <button className="text-xs font-bold tracking-[0.2em] uppercase text-text-primary flex items-center gap-3 group/btn" onClick={() => setIsOpen(project.index)}>
-                          View Details
-                          <span className="w-8 h-[2px] bg-text-primary group-hover/btn:w-12 transition-all duration-300"></span>
-                        </button>
-
-                        <a href={project.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="p-2 border border-text-secondary/20 rounded-full text-text-secondary hover:text-background hover:bg-text-primary hover:border-text-primary transition-all duration-300">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </a>
-                      </div>
-                    </div>
-                  </GlareHover>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
+        {/* Coverflow Carousel */}
         <FadeUp>
-          <div className="mt-16 flex justify-center w-full px-6">
-            <a href="https://github.com/RyHarJr" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 px-8 py-4 bg-background border border-text-secondary/20 text-text-primary hover:border-text-primary hover:bg-text-primary hover:text-background rounded-xl font-bold tracking-widest text-sm uppercase transition-all duration-300 ease-out group hover:-translate-y-1.5 hover:scale-[1.02] shadow-sm hover:shadow-xl">
-              <span>View More Project</span>
-              <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
+          <div className="relative w-full overflow-hidden py-10">
+            <motion.div className="relative mx-auto h-[500px] w-full touch-pan-y select-none" onPanEnd={(_, info) => (info.offset.x < -60 ? paginate(1) : info.offset.x > 60 && paginate(-1))}>
+              {projectList.map((project, index) => {
+                const offset = index - windowCenter
+                const isActive = index === active
+                const isVisible = Math.abs(offset) <= 1
+                const targetOpacity = isActive ? 1 : isVisible ? 0.55 : 0
+
+                return (
+                  <motion.div
+                    key={project.index}
+                    initial={false}
+                    animate={{
+                      x: `${offset * 88}%`,
+                      scale: isActive ? 1 : 0.84,
+                      opacity: targetOpacity,
+                    }}
+                    transition={{ type: "spring", damping: 26, stiffness: 170 }}
+                    style={{ zIndex: isActive ? 20 : 10 - Math.abs(offset), pointerEvents: isVisible ? "auto" : "none" }}
+                    className={`absolute left-1/2 top-0 h-[460px] w-[280px] -ml-[140px] sm:w-[340px] sm:-ml-[170px] rounded-2xl ${isActive ? "shadow-[0_30px_80px_-20px_rgba(0,0,0,0.35)]" : "shadow-[0_20px_50px_-20px_rgba(0,0,0,0.25)]"}`}
+                  >
+                    <GlareHover className="group flex flex-col h-full bg-background border border-text-secondary/20 rounded-2xl overflow-hidden">
+                      <div className="relative overflow-hidden aspect-[16/10] bg-text-secondary/5 border-b border-text-secondary/10">
+                        <Image src={project.imagePath} alt={project.title} fill sizes="340px" className="object-cover transition-all duration-700 group-hover:scale-105" />
+
+                        {/* Tech Stack Overlay */}
+                        <div className="absolute top-4 right-4 flex flex-wrap gap-2 justify-end z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-[-10px] group-hover:translate-y-0">
+                          {project.tech.slice(0, 3).map((tech, i) => (
+                            <span key={i} className="text-[10px] font-bold bg-background/90 text-text-primary px-2 py-1 rounded backdrop-blur-md border border-text-secondary/20 uppercase tracking-widest shadow-sm">
+                              {tech}
+                            </span>
+                          ))}
+                          {project.tech.length > 3 && <span className="text-[10px] font-bold bg-background/90 text-text-primary px-2 py-1 rounded backdrop-blur-md border border-text-secondary/20 uppercase tracking-widest shadow-sm">+{project.tech.length - 3}</span>}
+                        </div>
+                      </div>
+
+                      <div className="p-6 flex flex-col flex-grow relative">
+                        {/* Numbering */}
+                        <div className="absolute top-0 right-6 -translate-y-1/2 bg-background border border-text-secondary/20 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-text-secondary shadow-sm">{String(project.index + 1).padStart(2, "0")}</div>
+
+                        <h4 className="text-2xl font-black text-text-primary tracking-tight leading-tight mb-4">{project.title}</h4>
+
+                        <p className="text-sm text-text-secondary font-medium leading-relaxed mb-6 flex-grow line-clamp-4">{project.shortDescription}</p>
+
+                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-text-secondary/10">
+                          <button tabIndex={isActive || isStatic ? 0 : -1} className="text-xs font-bold tracking-[0.2em] uppercase text-text-primary flex items-center gap-3 group/btn" onClick={() => setIsOpen(project.index)}>
+                            View Details
+                            <span className="w-8 h-[2px] bg-text-primary group-hover/btn:w-12 transition-all duration-300"></span>
+                          </button>
+
+                          <a href={project.liveDemoUrl} tabIndex={isActive || isStatic ? 0 : -1} target="_blank" rel="noopener noreferrer" aria-label={`Open ${project.title} live demo`} className="p-2 border border-text-secondary/20 rounded-full text-text-secondary hover:text-background hover:bg-text-primary hover:border-text-primary transition-all duration-300">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        </div>
+                      </div>
+                    </GlareHover>
+
+                    {/* Side cards: click anywhere to bring into focus */}
+                    {!isStatic && !isActive && isVisible && <button type="button" aria-label={`Show ${project.title}`} onClick={() => setActive(index)} className="absolute inset-0 z-20 rounded-2xl cursor-pointer" />}
+                  </motion.div>
+                )
+              })}
+            </motion.div>
+
+            {/* Prev / Next */}
+            <div className="mt-6 flex justify-center gap-3">
+              <button type="button" aria-label="Previous project" disabled={isFirst} onClick={() => paginate(-1)} className="w-10 h-10 flex items-center justify-center rounded-full border border-text-secondary/40 text-text-primary enabled:hover:bg-text-primary enabled:hover:text-background enabled:hover:border-text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 12H5m0 0l7 7m-7-7l7-7" />
+                </svg>
+              </button>
+              <button type="button" aria-label="Next project" disabled={isLast} onClick={() => paginate(1)} className="w-10 h-10 flex items-center justify-center rounded-full border border-text-secondary/40 text-text-primary enabled:hover:bg-text-primary enabled:hover:text-background enabled:hover:border-text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14m0 0l-7-7m7 7l-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
         </FadeUp>
 
@@ -301,5 +253,18 @@ const projectList = [
     githubUrl: "https://github.com/RyHarJr/portofoliov2",
     liveDemoUrl: "https://ryhar.my.id",
     isPrivateRepo: false,
+  },
+  // TODO: placeholder, replace with the real fourth project
+  {
+    index: 3,
+    imagePath: "/images/hero.jpg",
+    title: "New Project",
+    shortDescription: "Placeholder description for the fourth project. Replace this with a short summary of what you built and the problem it solves.",
+    createdAt: "2026-10-07",
+    features: ["Feature One", "Feature Two", "Feature Three"],
+    tech: ["Next.js", "TypeScript", "Tailwind CSS"],
+    githubUrl: "https://github.com/RyHarJr",
+    liveDemoUrl: "https://github.com/RyHarJr",
+    isPrivateRepo: true,
   },
 ]

@@ -30,7 +30,7 @@ export default function TechStack() {
                         tech.svg.startsWith("<") ? (
                           <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: tech.svg }} />
                         ) : (
-                          <img src={tech.svg} alt={tech.name} className="w-full h-full tech-icon-img" />
+                          <img src={tech.svg} alt={tech.name} className={`w-full h-full tech-icon-img${tech.invertOnDark ? " tech-icon-invert" : ""}`} />
                         )
                       ) : (
                         <div className="w-full h-full flex items-center justify-center font-bold text-xl bg-thirdary/50 rounded-lg">{tech.name.charAt(0)}</div>
@@ -48,13 +48,16 @@ export default function TechStack() {
   )
 }
 
-const techCategories = [
+type Tech = { name: string; svg: string; invertOnDark?: boolean }
+type TechCategory = { title: string; description: string; technologies: Tech[] }
+
+const techCategories: TechCategory[] = [
   {
     title: "Frontend",
     description: "Frameworks and libraries for building interactive user interfaces.",
     technologies: [
       { name: "React.js", svg: "./icons/react.svg" },
-      { name: "Next.js", svg: "./icons/nextjs.svg" },
+      { name: "Next.js", svg: "./icons/nextjs.svg", invertOnDark: true },
       { name: "Tailwind CSS", svg: "./icons/tailwindcss.svg" },
       { name: "HTML5", svg: "./icons/html.svg" },
       { name: "CSS3", svg: "./icons/css.svg" },
@@ -66,9 +69,8 @@ const techCategories = [
     description: "Server-side technologies and frameworks.",
     technologies: [
       { name: "Node.js", svg: "./icons/nodejs.svg" },
-      { name: "Express.js", svg: "./icons/express.svg" },
-      { name: "Go (Golang)", svg: "./icons/go.svg" },
-      { name: "Fiber", svg: "./icons/fiber.svg" },
+      { name: "Express.js", svg: "./icons/express.svg", invertOnDark: true },
+      { name: "Spring Boot", svg: "./icons/springboot.svg" },
       { name: "Laravel", svg: "./icons/laravel.svg" },
     ],
   },
@@ -78,8 +80,6 @@ const techCategories = [
     technologies: [
       { name: "MySQL", svg: "./icons/mysql.svg" },
       { name: "PostgreSQL", svg: "./icons/postgresql.svg" },
-      { name: "MongoDB", svg: "./icons/mongodb.svg" },
-      { name: "Prisma ORM", svg: "./icons/prisma.svg" },
     ],
   },
   {
@@ -87,9 +87,8 @@ const techCategories = [
     description: "Development tools, version control, and deployment.",
     technologies: [
       { name: "Git", svg: "./icons/git.svg" },
-      { name: "GitHub", svg: "./icons/github.svg" },
+      { name: "GitHub", svg: "./icons/github.svg", invertOnDark: true },
       { name: "Docker", svg: "./icons/docker.svg" },
-      { name: "Linux", svg: "./icons/linux.svg" },
       { name: "Nginx", svg: "./icons/nginx.svg" },
       { name: "Postman", svg: "./icons/postman.svg" },
     ],

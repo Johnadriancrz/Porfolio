@@ -15,44 +15,31 @@ interface ExperienceItem {
 const experiences: ExperienceItem[] = [
   {
     id: 1,
-    company: "Freelance",
-    role: "Full Stack Web Developer",
-    date: "2025 - present",
-    description: "Engineered and deployed custom responsive web applications for multiple clients using modern full-stack frameworks. Led technical discovery sessions to translate business requirements into functional architecture, and implemented end-to-end development practices optimizing performance and scalability across Linux servers.",
-    skills: ["Next.js", "Express.js", "Laravel", "React"],
+    company: "Cursor Publication",
+    role: "Video Editor",
+    date: "Jan 2025 - Nov 2025",
+    description: "Edited school event videos, ensuring clear visuals and clean audio for student and faculty presentation. Utilized Adobe Premiere Pro, CapCut Pro, After Effects to produce polished and engaging content.",
+    skills: ["Adobe Premiere Pro", "CapCut Pro", "After Effects"],
   },
+
   {
     id: 2,
-    company: "Litbang IT (HIMSI)",
-    role: "IT & Web Developer",
-    date: "2026 - present",
-    description: "Served as an operator for the CTRL-Z event, ensuring smooth technical execution. Developed a web-based application for the organization using React.",
-    skills: ["React.js", "Technical Operations"],
+    company: "Cursor Publication",
+    role: "Video Editor",
+    date: "Jan 2025 - Nov 2025",
+    description: "Edited school event videos, ensuring clear visuals and clean audio for student and faculty presentation. Utilized Adobe Premiere Pro, CapCut Pro, After Effects to produce polished and engaging content.",
+    skills: ["Adobe Premiere Pro", "CapCut Pro", "After Effects"],
   },
+
   {
     id: 3,
-    company: "MDPTV",
-    role: "Photography, Videography & Web Developer",
-    date: "2024 - present",
-    description: "Operated professional camera equipment for campus broadcasting and media production. Developed a custom web platform for MDPTV using React.js for the frontend, alongside Bun and Prisma ORM for the backend.",
-    skills: ["React.js", "Bun", "Prisma ORM", "Broadcasting"],
+    company: "Cursor Publication",
+    role: "Video Editor",
+    date: "Jan 2025 - Nov 2025",
+    description: "Edited school event videos, ensuring clear visuals and clean audio for student and faculty presentation. Utilized Adobe Premiere Pro, CapCut Pro, After Effects to produce polished and engaging content.",
+    skills: ["Adobe Premiere Pro", "CapCut Pro", "After Effects"],
   },
-  {
-    id: 4,
-    company: "Procom (Programming Community)",
-    role: "Member",
-    date: "2024 - 2026",
-    description: "Completed Coaching program covering ReactJS and RESTful APIs, culminating in a Next.js web application as the final project.",
-    skills: ["ReactJS", "RESTful APIs", "Next.js"],
-  },
-  {
-    id: 5,
-    company: "Radio Republik Indonesia",
-    role: "Intern",
-    date: "Feb 2024 - May 2024",
-    description: "Maintained digital broadcasting infrastructure and IT operation systems to ensure uninterrupted media production. Resolved technical hardware and network troubleshooting tasks to minimize system downtime during live broadcasts.",
-    skills: ["IT Operations", "Network Troubleshooting", "Hardware Maintenance"],
-  },
+  
 ]
 
 export default function Experience() {
@@ -81,6 +68,15 @@ export default function Experience() {
       </FadeDown>
 
       <div className="max-w-5xl mx-auto px-6 md:px-8 relative group/list flex flex-col">
+        {/* Timeline line: gray track with a darker fill that grows on scroll */}
+        <div className="hidden md:block absolute top-[49px] bottom-8 left-[calc(25%-8px)] w-[2px] -translate-x-1/2 pointer-events-none">
+          <div className="w-full h-full bg-text-secondary/20 overflow-hidden">
+            <motion.div style={{ scaleY }} className="w-full h-full origin-top bg-text-secondary/60" />
+          </div>
+          {/* Circular end cap */}
+          <span className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full w-2.5 h-2.5 rounded-full bg-text-secondary/20" />
+        </div>
+
         {experiences.map((exp, index) => {
           return (
             <motion.div key={exp.id} initial={{ opacity: 0, y: 40, filter: "blur(5px)" }} whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, delay: index * 0.1 }} className="group/item relative grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-8 p-6 md:p-8 -mx-6 md:-mx-8 rounded-2xl transition-all duration-500 hover:!opacity-100 hover:!blur-none group-hover/list:opacity-40 group-hover/list:blur-[2px] hover:bg-text-secondary/5 hover:shadow-lg border border-transparent hover:border-text-secondary/10">
@@ -91,7 +87,9 @@ export default function Experience() {
               </div>
 
               {/* Right Column: Details */}
-              <div className="md:col-span-3 flex flex-col">
+              <div className="md:col-span-3 flex flex-col relative">
+                {/* Timeline marker dot: centered on the line, which sits 2rem left of the text column */}
+                <span className="hidden md:block absolute -left-8 top-[9px] -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-text-primary ring-4 ring-background" />
                 <h4 className="text-2xl font-bold text-text-primary tracking-tight mb-1 group-hover/item:text-text-primary transition-colors">{exp.role}</h4>
                 <h5 className="text-sm font-bold text-text-secondary tracking-wide uppercase mb-6">{exp.company}</h5>
 
