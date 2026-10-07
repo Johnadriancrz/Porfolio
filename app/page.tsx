@@ -5,6 +5,7 @@ import About from "./about"
 import Experience from "./experience"
 import TechStack from "./tech-stack"
 import Project from "./project"
+import WordPress from "./wordpress"
 import Contact from "./contact"
 
 export default function Home() {
@@ -16,8 +17,9 @@ export default function Home() {
       <Hero />
       <About />
       <Experience />
-      <TechStack />
       <Project />
+      <WordPress />
+      <TechStack />
       <Contact />
       <Footer />
     </>

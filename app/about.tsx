@@ -3,6 +3,11 @@ import FadeDown from "@/components/animations/FadeDown"
 import Fade from "@/components/animations/Fade"
 import FadeLeft from "@/components/animations/FadeLeft"
 import Image from "next/image"
+import Link from "next/link"
+import { certifications } from "@/data/certifications"
+
+// How many certifications the About section previews before linking to /certifications
+const PREVIEW_COUNT = 3
 
 export default function About() {
   const velocity = 50
@@ -46,9 +51,24 @@ export default function About() {
               </div>
               
               <div className="flex flex-col">
-                <Fade>
-                  <h4 className="text-lg md:text-xl font-bold text-text-primary mb-4 flex items-center border-b border-text-secondary/20 pb-4">My Approach</h4>
-                  <p className="text-base text-text-secondary leading-relaxed font-medium">I am committed to delivering efficient, maintainable, and scalable solutions through best software development practices.</p>
+                <Fade className="flex flex-col h-full">
+                  <h4 className="text-lg md:text-xl font-bold text-text-primary mb-4 flex items-center border-b border-text-secondary/20 pb-4">Certifications</h4>
+                  <ul className="flex flex-col gap-2 flex-1">
+                    {certifications.slice(0, PREVIEW_COUNT).map((cert) => (
+                      <li key={cert.title} className="flex flex-1">
+                        <Link href="/certifications" className="flex flex-col justify-center w-full px-3 py-2.5 rounded-lg border border-text-secondary/20 bg-background relative cursor-pointer transition-all duration-300 ease-out hover:z-10 hover:scale-110 hover:bg-thirdary hover:border-text-primary/40 hover:shadow-xl focus-visible:z-10 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary">
+                          <span className="text-[13px] font-bold text-text-primary leading-tight">{cert.title}</span>
+                          <span className="text-[11px] font-medium text-text-secondary mt-0.5">
+                            {cert.issuer} &middot; {cert.issuedAt}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href="/certifications" className="mt-3 self-start inline-flex items-center gap-3 text-xs font-bold tracking-[0.2em] uppercase text-text-primary group/btn">
+                    View all
+                    <span className="w-8 h-[2px] bg-text-primary group-hover/btn:w-12 transition-all duration-300"></span>
+                  </Link>
                 </Fade>
               </div>
             </div>

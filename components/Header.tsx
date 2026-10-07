@@ -15,6 +15,9 @@ export default function Header() {
         behavior: "smooth",
         block: "start",
       })
+    } else {
+      // Not on the home page (e.g. /certifications), so go there and jump to the section
+      window.location.href = `/#${id}`
     }
   }
 

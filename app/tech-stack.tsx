@@ -24,7 +24,7 @@ export default function TechStack() {
             <div className="md:w-2/3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 w-full">
               {category.technologies.map((tech, techIdx) => (
                 <FadeUp key={techIdx} delay={idx * 0.1 + techIdx * 0.05}>
-                  <div className="group flex flex-col items-center justify-center p-6 bg-thirdary/20 hover:bg-thirdary/50 border border-text-secondary/10 hover:border-text-primary/50 rounded-2xl transition-all duration-300 hover:-translate-y-2 h-full">
+                  <div className="group flex flex-col items-center justify-start p-6 bg-thirdary/20 hover:bg-thirdary/50 border border-text-secondary/10 hover:border-text-primary/50 rounded-2xl transition-all duration-300 hover:-translate-y-2 h-full">
                     <div className="w-12 h-12 mb-4 transition-colors flex items-center justify-center pointer-events-none">
                       {tech.svg ? (
                         tech.svg.startsWith("<") ? (
@@ -72,6 +72,8 @@ const techCategories: TechCategory[] = [
       { name: "Express.js", svg: "./icons/express.svg", invertOnDark: true },
       { name: "Spring Boot", svg: "./icons/springboot.svg" },
       { name: "Laravel", svg: "./icons/laravel.svg" },
+      { name: "OAuth", svg: "./icons/oauth.svg" },
+      { name: "JWT", svg: "./icons/jwt.svg" },
     ],
   },
   {
@@ -83,6 +85,13 @@ const techCategories: TechCategory[] = [
     ],
   },
   {
+    title: "CMS & No-Code",
+    description: "Content management systems and no-code platforms.",
+    technologies: [
+      { name: "WordPress", svg: "./icons/wordpress.svg" },
+    ],
+  },
+  {
     title: "Tools & Infrastructure",
     description: "Development tools, version control, and deployment.",
     technologies: [
@@ -91,6 +100,7 @@ const techCategories: TechCategory[] = [
       { name: "Docker", svg: "./icons/docker.svg" },
       { name: "Nginx", svg: "./icons/nginx.svg" },
       { name: "Postman", svg: "./icons/postman.svg" },
+      { name: "Rapid API Client", svg: "./icons/rapidapiclient.svg" },
     ],
   },
 ]
