@@ -31,8 +31,9 @@ export default function About() {
                   <Image 
                     src="/images/avatar.jpg"
                     alt="John Adrian Cruz, Full Stack Web Developer" 
-                    fill 
-                    className="object-cover origin-bottom transition-all duration-700 scale-115 group-hover:scale-120"
+                    fill
+                    quality={100}
+                    className="object-cover object-top origin-bottom transition-all duration-700 scale-115 group-hover:scale-120"
                     sizes="(max-width: 1024px) 100vw, 500px"
                   />
                 </div>
@@ -56,11 +57,16 @@ export default function About() {
                   <ul className="flex flex-col gap-2 flex-1">
                     {certifications.slice(0, PREVIEW_COUNT).map((cert) => (
                       <li key={cert.title} className="flex flex-1">
-                        <Link href="/certifications" className="flex flex-col justify-center w-full px-3 py-2.5 rounded-lg border border-text-secondary/20 bg-background relative cursor-pointer transition-all duration-300 ease-out hover:z-10 hover:scale-110 hover:bg-thirdary hover:border-text-primary/40 hover:shadow-xl focus-visible:z-10 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary">
-                          <span className="text-[13px] font-bold text-text-primary leading-tight">{cert.title}</span>
-                          <span className="text-[11px] font-medium text-text-secondary mt-0.5">
-                            {cert.issuer} &middot; {cert.issuedAt}
-                          </span>
+                        <Link href="/certifications" className="flex items-center justify-between gap-3 w-full px-3 py-2.5 rounded-lg border border-text-secondary/20 bg-background relative cursor-pointer transition-all duration-300 ease-out hover:z-10 hover:scale-110 hover:bg-thirdary hover:border-text-primary/40 hover:shadow-xl focus-visible:z-10 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary">
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[13px] font-bold text-text-primary leading-tight">{cert.title}</span>
+                            <span className="text-[11px] font-medium text-text-secondary mt-0.5">
+                              {cert.issuer}{cert.via && ` · via ${cert.via}`}
+                            </span>
+                          </div>
+                          {cert.logo && (
+                            <Image src={cert.logo} alt={`${cert.issuer} logo`} width={48} height={48} className={`size-12 shrink-0 rounded-lg object-contain ${cert.logoFullBleed ? "" : "bg-white p-1.5 ring-1 ring-black/10 shadow-sm"}`} />
+                          )}
                         </Link>
                       </li>
                     ))}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Image from "next/image"
 import Link from "next/link"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
@@ -30,10 +31,15 @@ export default function CertificationsPage() {
 
         <ul className="max-w-5xl mx-auto px-6 md:px-8 grid grid-cols-1 md:grid-cols-2 gap-4">
           {certifications.map((cert) => (
-            <li key={cert.title} className="flex flex-col justify-between gap-6 p-6 rounded-2xl border border-text-secondary/20 bg-background transition-colors duration-300 hover:bg-thirdary/40">
-              <div>
-                <h4 className="text-lg font-bold text-text-primary leading-snug">{cert.title}</h4>
-                <p className="text-sm font-medium text-text-secondary mt-2">{cert.issuer}</p>
+            <li key={cert.title} className="relative flex flex-col justify-between gap-6 p-6 rounded-2xl border border-text-secondary/20 bg-background transition-colors duration-300 hover:bg-thirdary/40">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h4 className="text-lg font-bold text-text-primary leading-snug">{cert.title}</h4>
+                  <p className="text-sm font-medium text-text-secondary mt-2">{cert.issuer}{cert.via && ` · via ${cert.via}`}</p>
+                </div>
+                {cert.logo && (
+                  <Image src={cert.logo} alt={`${cert.issuer} logo`} width={64} height={64} className={`size-16 shrink-0 rounded-xl object-contain ${cert.logoFullBleed ? "" : "bg-white p-2 ring-1 ring-black/10 shadow-sm"}`} />
+                )}
               </div>
               <div className="flex items-center justify-between pt-4 border-t border-text-secondary/10">
                 <span className="text-xs uppercase tracking-widest font-bold text-text-secondary">{cert.issuedAt}</span>
