@@ -15,20 +15,20 @@ interface ExperienceItem {
 const experiences: ExperienceItem[] = [
   {
     id: 1,
-    company: "Cursor Publication",
-    role: "Video Editor",
-    date: "Jan 2025 - Nov 2025",
-    description: "Edited school event videos, ensuring clear visuals and clean audio for student and faculty presentation. Utilized Adobe Premiere Pro, CapCut Pro, After Effects to produce polished and engaging content.",
-    skills: ["Adobe Premiere Pro", "CapCut Pro", "After Effects"],
+    company: "Somago International Corporation",
+    role: "Web Developer / Team Leader",
+    date: "May 2026 - Present",
+    description: "Developed and maintained full-stack web applications, including Somago Portal using Spring Boot and SALAMA Language Center using Laravel 12. Built RESTful APIs, implemented backend services, authentication, business logic, and MySQL database integration. Developed frontend interfaces using React 19, Next.js, and Tailwind CSS.\n\nDeveloped and maintained six WordPress websites using themes, plugins, and visual page builders. Worked with Docker-based CI/CD pipelines, Gitea Actions, GitHub, and Alibaba Cloud ECS for application deployment and version control. Led technical tasks and coordinated development activities as Team Leader.",
+    skills: ["Laravel", "Spring Boot", "React", "Next.js", "Tailwind CSS", "MySQL", "WordPress", "Docker", "CI/CD", "Gitea", "GitHub", "Alibaba Cloud ECS"],
   },
 
   {
     id: 2,
-    company: "Cursor Publication",
-    role: "Video Editor",
-    date: "Jan 2025 - Nov 2025",
-    description: "Edited school event videos, ensuring clear visuals and clean audio for student and faculty presentation. Utilized Adobe Premiere Pro, CapCut Pro, After Effects to produce polished and engaging content.",
-    skills: ["Adobe Premiere Pro", "CapCut Pro", "After Effects"],
+    company: "Procurement and Supply Institute of Asia (PASIA)",
+    role: "Intern",
+    date: "Dec 2025 - Feb 2026",
+    description: "Identified, organized, and classified hospital inventory products using Microsoft Excel, ensuring accurate data entry. Processed and organized large volumes of inventory data and improved record accuracy. Maintained organized records and efficient workflows, helping improve inventory coordination and reduce processing delays.",
+    skills: ["Microsoft Excel", "Data Entry", "Inventory Management"],
   },
 
   {
@@ -39,7 +39,6 @@ const experiences: ExperienceItem[] = [
     description: "Edited school event videos, ensuring clear visuals and clean audio for student and faculty presentation. Utilized Adobe Premiere Pro, CapCut Pro, After Effects to produce polished and engaging content.",
     skills: ["Adobe Premiere Pro", "CapCut Pro", "After Effects"],
   },
-  
 ]
 
 export default function Experience() {
@@ -93,7 +92,7 @@ export default function Experience() {
                 <h4 className="text-2xl font-bold text-text-primary tracking-tight mb-1 group-hover/item:text-text-primary transition-colors">{exp.role}</h4>
                 <h5 className="text-sm font-bold text-text-secondary tracking-wide uppercase mb-6">{exp.company}</h5>
 
-                <p className="text-base text-text-secondary font-medium leading-relaxed mb-6">{exp.description}</p>
+                <p className="text-base text-text-secondary font-medium leading-relaxed mb-6 whitespace-pre-line">{exp.description}</p>
 
                 <div className="flex flex-wrap gap-2">
                   {exp.skills.map((skill, i) => (

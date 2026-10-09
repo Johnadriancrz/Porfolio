@@ -30,7 +30,7 @@ export default function About() {
                 <div className="relative z-10 p-2 bg-background border border-text-secondary/10 rounded-3xl overflow-hidden aspect-[4/5] w-full group transition-all duration-500 hover:-translate-y-1">
                   <Image 
                     src="/images/avatar.jpg"
-                    alt="Ahmad Rizki Hartawan" 
+                    alt="John Adrian Cruz, Full Stack Web Developer" 
                     fill 
                     className="object-cover origin-bottom transition-all duration-700 scale-115 group-hover:scale-120"
                     sizes="(max-width: 1024px) 100vw, 500px"
@@ -109,12 +109,15 @@ export default function About() {
                   </div>
                 </FadeLeft>
 
-                <FadeLeft delay={0.6}>
-                  <div className="flex flex-col p-2 -m-2 rounded-xl transition-colors duration-300 hover:bg-thirdary/40">
-                    <span className="text-xs uppercase tracking-widest font-bold text-text-secondary mb-1">Education</span>
-                    <span className="text-base font-semibold text-text-primary">Bulacan State University - Malolos</span>
-                  </div>
-                </FadeLeft>
+                <div className="sm:col-span-2">
+                  <FadeLeft delay={0.6}>
+                    <div className="flex flex-col p-2 -m-2 rounded-xl transition-colors duration-300 hover:bg-thirdary/40">
+                      <span className="text-xs uppercase tracking-widest font-bold text-text-secondary mb-1">Education</span>
+                      <span className="text-base font-semibold text-text-primary">Bulacan State University - Malolos</span>
+                      <span className="text-sm text-text-secondary mt-1">BS in Information Technology - Major in Web and Mobile Applications</span>
+                    </div>
+                  </FadeLeft>
+                </div>
               </div>
             </div>
           </div>

@@ -1,7 +1,8 @@
 import { MetadataRoute } from "next"
+import { SITE_URL } from "@/data/site"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://ryhar.my.id"
+  const baseUrl = SITE_URL
 
   return [
     {

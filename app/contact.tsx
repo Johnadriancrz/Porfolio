@@ -12,6 +12,51 @@ interface ChatMessage {
   sender: "user" | "bot"
   text: string
   timestamp: Date
+  // Transient error bubble: shown in the UI, but never saved or sent back to the model
+  isError?: boolean
+}
+
+interface StoredChatMessage {
+  id: string
+  sender: "user" | "bot"
+  text: string
+  timestamp: string
+}
+
+const CHAT_STORAGE_KEYS = {
+  name: "john_chat_name",
+  messages: "john_chat_messages",
+  // Keys used by the portfolio this project was forked from; read once for migration, then removed
+  legacyName: "ryhar_chat_name",
+  legacyMessages: "ryhar_chat_messages",
+}
+const WELCOME_MESSAGE_ID = "welcome-msg"
+const MAX_STORED_MESSAGES = 50
+const MAX_HISTORY_MESSAGES = 20
+const MAX_INPUT_LENGTH = 2000
+const CHAT_ERROR_TEXT = "Sorry, I'm having trouble responding right now. Please try again in a moment."
+
+const createWelcomeMessage = (): ChatMessage => ({
+  id: WELCOME_MESSAGE_ID,
+  sender: "bot",
+  text: "Hi! I'm John's portfolio assistant. Ask me about his projects, experience, tech stack, or how to get in touch.",
+  timestamp: new Date(),
+})
+
+// Validates whatever is in localStorage, since it can be edited or corrupted
+const parseStoredMessages = (raw: string): ChatMessage[] => {
+  const parsed: unknown = JSON.parse(raw)
+  if (!Array.isArray(parsed)) return []
+
+  return (parsed as Partial<StoredChatMessage>[])
+    .filter((msg) => msg && typeof msg.id === "string" && (msg.sender === "user" || msg.sender === "bot") && typeof msg.text === "string" && msg.text.trim() !== "")
+    .map((msg) => ({
+      id: msg.id as string,
+      sender: msg.sender as "user" | "bot",
+      text: msg.text as string,
+      timestamp: new Date(msg.timestamp ?? Date.now()),
+    }))
+    .slice(-MAX_STORED_MESSAGES)
 }
 
 export default function Contact() {
@@ -30,6 +75,7 @@ export default function Contact() {
   const [userName, setUserName] = useState("Guest")
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [isChatLoading, setIsChatLoading] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -38,53 +84,44 @@ export default function Contact() {
 
   // Initialize Chat from LocalStorage
   useEffect(() => {
-    // Check for saved name
-    const savedName = localStorage.getItem("ryhar_chat_name")
-    if (savedName) {
-      setUserName(savedName)
-    } else {
-      const newName = `Guest-${Math.floor(Math.random() * 10000)}`
-      setUserName(newName)
-      localStorage.setItem("ryhar_chat_name", newName)
-    }
-
-    // Check for saved messages
-    const savedMessages = localStorage.getItem("ryhar_chat_messages")
-    if (savedMessages) {
-      try {
-        const parsed = JSON.parse(savedMessages)
-        // Convert timestamp strings back to Date objects
-        const formattedMessages = parsed.map((msg: any) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        }))
-        setChatMessages(formattedMessages)
-      } catch (e) {
-        console.error("Failed to parse saved messages", e)
-        setInitialWelcomeMessage()
+    try {
+      // Check for saved name (falls back to the legacy key once, then moves it to the new one)
+      const savedName = localStorage.getItem(CHAT_STORAGE_KEYS.name) || localStorage.getItem(CHAT_STORAGE_KEYS.legacyName)
+      if (savedName) {
+        setUserName(savedName)
+        localStorage.setItem(CHAT_STORAGE_KEYS.name, savedName)
+      } else {
+        const newName = `Guest-${Math.floor(Math.random() * 10000)}`
+        setUserName(newName)
+        localStorage.setItem(CHAT_STORAGE_KEYS.name, newName)
       }
-    } else {
-      setInitialWelcomeMessage()
+      localStorage.removeItem(CHAT_STORAGE_KEYS.legacyName)
+
+      // Check for saved messages. Old-key history is the previous owner's Indonesian chat, so it is discarded, not migrated.
+      localStorage.removeItem(CHAT_STORAGE_KEYS.legacyMessages)
+      const savedMessages = localStorage.getItem(CHAT_STORAGE_KEYS.messages)
+      const restored = savedMessages ? parseStoredMessages(savedMessages) : []
+      setChatMessages(restored.length > 0 ? restored : [createWelcomeMessage()])
+    } catch (e) {
+      console.error("Failed to restore saved chat", e)
+      setChatMessages([createWelcomeMessage()])
     }
   }, [])
-  
+
   const setInitialWelcomeMessage = () => {
-    setChatMessages([
-      {
-        id: "welcome-msg",
-        sender: "bot",
-        text: "Halo! Saya adalah asisten AI RyHar. Ada yang bisa saya bantu terkait portofolio, pengalaman, atau project RyHar?",
-        timestamp: new Date()
-      }
-    ])
+    setChatMessages([createWelcomeMessage()])
   }
 
-  // Save Messages to LocalStorage whenever they change
+  // Save Messages to LocalStorage whenever they change (never errors, empty bubbles or the in-flight reply)
   useEffect(() => {
-    if (chatMessages.length > 0) {
-      localStorage.setItem("ryhar_chat_messages", JSON.stringify(chatMessages))
+    if (chatMessages.length === 0 || isStreaming) return
+    const toStore = chatMessages.filter((msg) => !msg.isError && msg.text.trim() !== "").slice(-MAX_STORED_MESSAGES)
+    try {
+      localStorage.setItem(CHAT_STORAGE_KEYS.messages, JSON.stringify(toStore))
+    } catch (e) {
+      console.error("Failed to save chat", e)
     }
-  }, [chatMessages])
+  }, [chatMessages, isStreaming])
 
   useEffect(() => {
     if (isOpenChat) {
@@ -95,9 +132,9 @@ export default function Contact() {
 
   const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!chatInput.trim()) return
+    const userText = chatInput.trim().slice(0, MAX_INPUT_LENGTH)
+    if (!userText || isChatLoading || isStreaming) return
 
-    const userText = chatInput.trim()
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       sender: "user",
@@ -105,54 +142,25 @@ export default function Contact() {
       timestamp: new Date()
     }
 
-    // Build history from existing messages (exclude welcome bot message if it's the only one)
-    const historyMessages = chatMessages.filter(msg => msg.id !== "welcome-msg")
-    const history = [
-      {
-        role: "system" as const,
-        content: `System Context: Kamu adalah RyHar Assistant, asisten AI pribadi untuk Ahmad Rizki Hartawan (RyHar). Tugasmu adalah menjawab pertanyaan pengunjung website portofolio RyHar dengan ramah, profesional, dan informatif menggunakan bahasa Indonesia.
-        
-Gunakan panduan informasi berikut tentang RyHar untuk menjawab pertanyaan:
-
-1. **Profil & Kontak**:
-   - Nama: Ahmad Rizki Hartawan (RyHar)
-   - Peran: Fullstack Web Developer dengan pengalaman 2+ tahun
-   - Pendidikan: Universitas Multi Data Palembang (IPK: 3.84)
-   - Lokasi: Palembang, Indonesia
-   - Email: a.rizkihartawan04@gmail.com
-   - WhatsApp/Telepon: +62 895-0818-8642 (wa.me/6289508188642)
-   - LinkedIn: linkedin.com/in/rizkihartawan/
-   - Instagram: @rizki_hr4 (instagram.com/rizki_hr4)
-   - TikTok: @ryhar.dev (tiktok.com/@ryhar.dev)
-   - GitHub: github.com/RyHarJr
-   - Pendekatan: Mengutamakan clean code, desain responsif, dan UX yang intuitif.
-
-2. **Tech Stack**:
-   - Frontend: React, Next.js, Tailwind CSS, TypeScript
-   - Backend & Database: Node.js, Express.js, MySQL, MongoDB (JavaScript sebagai bahasa utama)
-
-3. **Pengalaman Kerja**:
-   - Freelance Full Stack Web Developer (2025 - present): Mengembangkan web app kustom untuk berbagai klien.
-   - Litbang IT HIMSI (2026 - present): Operator IT dan Web Developer untuk organisasi.
-   - MDPTV (2024 - present): Fotografi, Videografi, & Web Developer.
-   - Radio Republik Indonesia (2024): Magang pemeliharaan infrastruktur broadcasting dan IT.
-
-4. **Proyek Utama**:
-   - JadibotWA (jadibotwa.xyz) - Platform automasi WhatsApp tanpa kode.
-   - RyHar Panel (ryhar-panel.my.id) - Landing page & platform manajemen layanan hosting.
-   - RyHar Portfolio (ryhar.my.id) - Website portofolio pribadi.
-
-Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada di profil ini, dan selalu bersikap ramah.`
-      },
-      ...historyMessages.map(msg => ({
+    // Only real conversation goes back to the server: no welcome message, error bubbles or empty replies.
+    // The server adds the system prompt itself and re-validates everything.
+    const history = chatMessages
+      .filter(msg => msg.id !== WELCOME_MESSAGE_ID && !msg.isError && msg.text.trim() !== "")
+      .slice(-MAX_HISTORY_MESSAGES)
+      .map(msg => ({
         role: msg.sender === "user" ? "user" as const : "assistant" as const,
         content: msg.text
       }))
-    ]
 
-    setChatMessages(prev => [...prev, userMsg])
+    // A new message clears any earlier error bubble
+    setChatMessages(prev => [...prev.filter(msg => !msg.isError), userMsg])
     setChatInput("")
     setIsChatLoading(true)
+    setIsStreaming(true)
+
+    // The reply bubble is only created once real text arrives, so an empty assistant message is never added
+    const botMsgId = (Date.now() + 1).toString()
+    let botText = ""
 
     try {
       const response = await fetch("/api/chat", {
@@ -160,56 +168,59 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: userText, history }),
       })
-      
-      if (!response.ok) {
-        throw new Error("Network response was not ok")
+
+      if (!response.ok || !response.body) {
+        throw new Error(`Chat request failed with status ${response.status}`)
       }
 
-      // If response is JSON, it means an error occurred on the backend
-      const contentType = response.headers.get("Content-Type") || ""
-      if (contentType.includes("application/json")) {
-        const data = await response.json()
-        throw new Error(data.message || "Error dari server")
-      }
-
-      setIsChatLoading(false)
-
-      const botMsgId = (Date.now() + 1).toString()
-      setChatMessages(prev => [...prev, {
-        id: botMsgId,
-        sender: "bot",
-        text: "",
-        timestamp: new Date()
-      }])
-
-      const reader = response.body?.getReader()
+      const reader = response.body.getReader()
       const decoder = new TextDecoder()
-      let botText = ""
 
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          
-          botText += decoder.decode(value, { stream: true })
-          setChatMessages(prev => 
-            prev.map(msg => 
-              msg.id === botMsgId ? { ...msg, text: botText } : msg
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        if (!chunk) continue
+
+        const isFirstChunk = botText === ""
+        botText += chunk
+        const currentText = botText
+
+        if (isFirstChunk) {
+          setIsChatLoading(false)
+          setChatMessages(prev => [...prev, {
+            id: botMsgId,
+            sender: "bot",
+            text: currentText,
+            timestamp: new Date()
+          }])
+        } else {
+          setChatMessages(prev =>
+            prev.map(msg =>
+              msg.id === botMsgId ? { ...msg, text: currentText } : msg
             )
           )
         }
       }
 
+      if (!botText.trim()) {
+        throw new Error("Chat response was empty")
+      }
+
     } catch (error) {
       console.error("Chat error:", error)
+      // Keeps any partial reply, adds one transient error bubble (not saved, not sent back to the model)
       setChatMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
+        id: `error-${Date.now()}`,
         sender: "bot",
-        text: "Maaf, terjadi kesalahan koneksi atau server AI.",
-        timestamp: new Date()
+        text: CHAT_ERROR_TEXT,
+        timestamp: new Date(),
+        isError: true
       }])
     } finally {
       setIsChatLoading(false)
+      setIsStreaming(false)
     }
   }
 
@@ -250,7 +261,7 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
             {/* Social Links Cards */}
             <div className="grid grid-cols-3 sm:flex sm:flex-col gap-4">
               {/* GitHub */}
-              <a href="https://github.com/RyHarJr" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-text-primary hover:bg-text-secondary/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
+              <a href="https://github.com/Johnadriancrz" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-text-primary hover:bg-text-secondary/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-text-secondary/10 flex items-center justify-center text-text-primary group-hover:text-text-primary group-hover:scale-110 transition-all duration-300">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
@@ -259,14 +270,14 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
                   </div>
                   <div className="hidden sm:block">
                     <h4 className="text-lg font-bold text-text-primary">GitHub</h4>
-                    <p className="text-sm font-medium text-text-secondary">RyHarJr</p>
+                    <p className="text-sm font-medium text-text-secondary">Johnadriancrz</p>
                   </div>
                 </div>
                 <svg className="hidden sm:block w-5 h-5 text-text-secondary group-hover:text-text-primary group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
               </a>
 
               {/* Email */}
-              <a href="mailto:a.rizkihartawan04@gmail.com" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-text-primary hover:bg-text-secondary/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
+              <a href="mailto:johnbarbozacruz@gmail.com" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-text-primary hover:bg-text-secondary/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-text-secondary/10 flex items-center justify-center text-text-primary group-hover:text-text-primary group-hover:scale-110 transition-transform duration-300">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
@@ -275,30 +286,30 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
                   </div>
                   <div className="hidden sm:block">
                     <h4 className="text-lg font-bold text-text-primary">Email</h4>
-                    <p className="text-sm font-medium text-text-secondary">a.rizkihartawan04@gmail.com</p>
+                    <p className="text-sm font-medium text-text-secondary">johnbarbozacruz@gmail.com</p>
                   </div>
                 </div>
                 <svg className="hidden sm:block w-5 h-5 text-text-secondary group-hover:text-text-primary group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
               </a>
 
-              {/* WhatsApp */}
-              <a href="https://wa.me/6289508188642" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-[#25D366] hover:bg-[#25D366]/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
+              {/* Viber */}
+              <a href="viber://chat?number=%2B639953551650" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-[#7360F2] hover:bg-[#7360F2]/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-text-secondary/10 flex items-center justify-center text-text-primary group-hover:text-[#25D366] group-hover:scale-110 transition-all duration-300">
+                  <div className="w-12 h-12 rounded-full bg-text-secondary/10 flex items-center justify-center text-text-primary group-hover:text-[#7360F2] group-hover:scale-110 transition-all duration-300">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                      <path d="M11.4 0C9.473.028 5.333.344 3.02 2.467 1.302 4.187.696 6.7.633 9.817.57 12.933.488 18.776 6.12 20.36h.003l-.004 2.416s-.037.977.61 1.177c.777.242 1.234-.5 1.98-1.302.407-.44.972-1.084 1.397-1.58 3.85.326 6.812-.416 7.15-.525.776-.252 5.176-.816 5.892-6.657.74-6.02-.36-9.83-2.34-11.546-.596-.55-3.006-2.3-8.375-2.323 0 0-.395-.025-1.037-.017zm.058 1.693c.545-.004.88.017.88.017 4.542.02 6.717 1.388 7.222 1.846 1.675 1.435 2.53 4.868 1.906 9.897v.002c-.604 4.878-4.174 5.184-4.832 5.395-.28.09-2.882.737-6.153.524 0 0-2.436 2.94-3.197 3.704-.12.12-.26.167-.352.144-.13-.033-.166-.188-.165-.414l.02-4.018c-4.762-1.32-4.485-6.292-4.43-8.895.054-2.604.543-4.738 1.996-6.173 1.96-1.773 5.474-2.018 7.11-2.03zm.38 2.602c-.167 0-.303.135-.304.302 0 .167.133.303.3.305 1.624.01 2.946.537 4.028 1.592 1.073 1.046 1.62 2.468 1.633 4.334.002.167.14.3.307.3.166-.002.3-.138.3-.304-.014-1.984-.618-3.596-1.816-4.764-1.19-1.16-2.692-1.753-4.447-1.765zm-3.96.695c-.19-.032-.4.005-.616.117l-.01.002c-.43.247-.816.562-1.146.932-.002.004-.006.004-.008.008-.267.323-.42.638-.46.948-.008.046-.01.093-.007.14 0 .136.022.27.065.4l.013.01c.135.48.473 1.276 1.205 2.604.42.768.903 1.5 1.446 2.186.27.344.56.673.87.984l.132.132c.31.308.64.6.984.87.686.543 1.418 1.027 2.186 1.447 1.328.733 2.126 1.07 2.604 1.206l.01.014c.13.042.265.064.402.063.046.002.092 0 .138-.008.31-.036.627-.19.948-.46.004 0 .003-.002.008-.005.37-.33.683-.72.93-1.148l.003-.01c.225-.432.15-.842-.18-1.12-.004 0-.698-.58-1.037-.83-.36-.255-.73-.492-1.113-.71-.51-.285-1.032-.106-1.248.174l-.447.564c-.23.283-.657.246-.657.246-3.12-.796-3.955-3.955-3.955-3.955s-.037-.426.248-.656l.563-.448c.277-.215.456-.737.17-1.248-.217-.383-.454-.756-.71-1.115-.25-.34-.826-1.033-.83-1.035-.137-.165-.31-.265-.502-.297zm4.49.88c-.158.002-.29.124-.3.282-.01.167.115.312.282.324 1.16.085 2.017.466 2.645 1.15.63.688.93 1.524.906 2.57-.002.168.13.306.3.31.166.003.305-.13.31-.297.025-1.175-.334-2.193-1.067-2.994-.74-.81-1.777-1.253-3.05-1.346h-.024zm.463 1.63c-.16.002-.29.127-.3.287-.008.167.12.31.288.32.523.028.875.175 1.113.422.24.245.388.62.416 1.164.01.167.15.295.318.287.167-.008.295-.15.287-.317-.03-.644-.215-1.178-.58-1.557-.367-.378-.893-.574-1.52-.607h-.018z" />
                     </svg>
                   </div>
                   <div className="hidden sm:block">
-                    <h4 className="text-lg font-bold text-text-primary">WhatsApp</h4>
-                    <p className="text-sm font-medium text-text-secondary">+62 895-0818-8642</p>
+                    <h4 className="text-lg font-bold text-text-primary">Viber</h4>
+                    <p className="text-sm font-medium text-text-secondary">+63 995-355-1650</p>
                   </div>
                 </div>
-                <svg className="hidden sm:block w-5 h-5 text-text-secondary group-hover:text-[#25D366] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                <svg className="hidden sm:block w-5 h-5 text-text-secondary group-hover:text-[#7360F2] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
               </a>
 
               {/* LinkedIn */}
-              <a href="https://www.linkedin.com/in/rizkihartawan/" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-[#0077b5] hover:bg-[#0077b5]/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
+              <a href="https://linkedin.com/in/johnadriancruz" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-[#0077b5] hover:bg-[#0077b5]/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-text-secondary/10 flex items-center justify-center text-text-primary group-hover:text-[#0077b5] group-hover:scale-110 transition-all duration-300">
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -307,14 +318,14 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
                   </div>
                   <div className="hidden sm:block">
                     <h4 className="text-lg font-bold text-text-primary">LinkedIn</h4>
-                    <p className="text-sm font-medium text-text-secondary">Rizki Hartawan</p>
+                    <p className="text-sm font-medium text-text-secondary">John Adrian Cruz</p>
                   </div>
                 </div>
                 <svg className="hidden sm:block w-5 h-5 text-text-secondary group-hover:text-[#0077b5] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
               </a>
 
               {/* Instagram */}
-              <a href="https://instagram.com/rizki_hr4" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-[#E1306C] hover:bg-[#E1306C]/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
+              <a href="https://www.instagram.com/ajay.crz/" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-[#E1306C] hover:bg-[#E1306C]/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-text-secondary/10 flex items-center justify-center text-text-primary group-hover:text-[#E1306C] group-hover:scale-110 transition-all duration-300">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
@@ -323,14 +334,14 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
                   </div>
                   <div className="hidden sm:block">
                     <h4 className="text-lg font-bold text-text-primary">Instagram</h4>
-                    <p className="text-sm font-medium text-text-secondary">@rizki_hr4</p>
+                    <p className="text-sm font-medium text-text-secondary">@ajay.crz</p>
                   </div>
                 </div>
                 <svg className="hidden sm:block w-5 h-5 text-text-secondary group-hover:text-[#E1306C] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
               </a>
 
               {/* TikTok */}
-              <a href="https://tiktok.com/@ryhar.dev" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-text-primary hover:bg-text-primary/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
+              <a href="https://www.tiktok.com/@ajay_crz" target="_blank" rel="noopener noreferrer" className="group bg-background border border-text-secondary/20 rounded-2xl p-4 sm:p-6 flex items-center justify-center sm:justify-between hover:border-text-primary hover:bg-text-primary/5 transition-all duration-300 shadow-sm hover:shadow-md aspect-square sm:aspect-auto">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-text-secondary/10 flex items-center justify-center text-text-primary group-hover:text-text-primary group-hover:scale-110 transition-all duration-300">
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -339,7 +350,7 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
                   </div>
                   <div className="hidden sm:block">
                     <h4 className="text-lg font-bold text-text-primary">TikTok</h4>
-                    <p className="text-sm font-medium text-text-secondary">@ryhar.dev</p>
+                    <p className="text-sm font-medium text-text-secondary">@ajay_crz</p>
                   </div>
                 </div>
                 <svg className="hidden sm:block w-5 h-5 text-text-secondary group-hover:text-text-primary group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
@@ -374,7 +385,7 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-thirdary flex items-center justify-center text-text-primary font-black border border-text-secondary/10">AI</div>
               <div>
-                <h3 className="text-lg font-black text-text-primary tracking-tight leading-none">RyHar Assistant</h3>
+                <h3 className="text-lg font-black text-text-primary tracking-tight leading-none">John&apos;s Assistant</h3>
                 <span className="text-xs text-green-500 font-bold flex items-center gap-1 mt-1">
                   <span className="w-2 h-2 rounded-full bg-green-500 block animate-pulse"></span> Online
                 </span>
@@ -384,13 +395,13 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
               <button 
                 onClick={setInitialWelcomeMessage} 
                 className="text-text-secondary hover:text-red-500 transition-colors p-2 bg-text-secondary/5 rounded-full"
-                title="Hapus / Mulai Baru"
+                title="Clear / Start over"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
               </button>
-              <button onClick={() => setIsOpenChat(false)} className="text-text-secondary hover:text-text-primary transition-colors p-2 bg-text-secondary/5 rounded-full" title="Tutup">
+              <button onClick={() => setIsOpenChat(false)} className="text-text-secondary hover:text-text-primary transition-colors p-2 bg-text-secondary/5 rounded-full" title="Close">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -425,9 +436,10 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
                           ),
                           th: ({node, ...props}) => <th className="border border-text-secondary/20 px-3 py-2 bg-text-secondary/10 font-bold" {...props} />,
                           td: ({node, ...props}) => <td className="border border-text-secondary/20 px-3 py-2" {...props} />,
-                          code: ({node, inline, className, children, ...props}: any) => {
-                            const match = /language-(\w+)/.exec(className || '')
-                            return !inline ? (
+                          code: ({node, className, children, ...props}) => {
+                            // react-markdown v10 no longer passes `inline`; fenced blocks carry a language-* class
+                            const isBlock = /language-(\w+)/.test(className || '') || String(children).includes("\n")
+                            return isBlock ? (
                               <pre className="bg-text-primary text-background p-3 rounded-xl overflow-x-auto custom-scrollbar text-xs my-2 font-mono">
                                 <code className={className} {...props}>
                                   {children}
@@ -447,7 +459,7 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
                     </div>
                   )}
                   <span className={`text-[10px] uppercase font-bold tracking-wider mt-2 block ${msg.sender === "user" ? "text-background/70" : "text-text-secondary/70"}`}>
-                    {msg.timestamp.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
+                    {msg.timestamp.toLocaleTimeString("en-US",{ hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
               </div>
@@ -474,11 +486,12 @@ Aturan: Jawab langsung ke intinya, jangan menambahkan informasi yang tidak ada d
                 onChange={(e) => setChatInput(e.target.value)}
                 placeholder="Ask me anything..." 
                 className="flex-1 bg-thirdary/30 border border-text-secondary/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-text-primary text-text-primary font-medium transition-colors"
-                disabled={isChatLoading}
+                maxLength={MAX_INPUT_LENGTH}
+                disabled={isChatLoading || isStreaming}
               />
               <button 
                 type="submit" 
-                disabled={!chatInput.trim() || isChatLoading}
+                disabled={!chatInput.trim() || isChatLoading || isStreaming}
                 className="bg-text-primary text-background p-3 rounded-xl hover:-translate-y-0.5 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

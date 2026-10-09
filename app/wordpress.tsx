@@ -74,7 +74,12 @@ export default function WordPress() {
                 >
                   <GlareHover className="group flex flex-col h-full bg-background border border-text-secondary/20 rounded-2xl overflow-hidden">
                     <div className="relative overflow-hidden aspect-[16/10] bg-text-secondary/5 border-b border-text-secondary/10">
-                      <Image src={project.imagePath} alt={project.title} fill sizes="340px" className="object-cover transition-all duration-700 group-hover:scale-105" />
+                      {"embedUrl" in project && project.embedUrl ? (
+                        // Live preview: render the real site at desktop width, then scale it down to fit the card (280px / 1280px, 340px / 1280px)
+                        <iframe src={project.embedUrl} title={`${project.title} live preview`} loading="lazy" tabIndex={-1} aria-hidden="true" className="absolute top-0 left-0 w-[1280px] h-[800px] max-w-none border-0 origin-top-left scale-[0.21875] sm:scale-[0.265625] pointer-events-none bg-white" />
+                      ) : (
+                        <Image src={project.imagePath} alt={project.title} fill sizes="340px" className="object-cover transition-all duration-700 group-hover:scale-105" />
+                      )}
 
                       {/* Tech Stack Overlay */}
                       <div className="absolute top-4 right-4 flex flex-wrap gap-2 justify-end z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-[-10px] group-hover:translate-y-0">
@@ -170,6 +175,13 @@ export default function WordPress() {
                   </div>
                 </div>
 
+                {"summary" in activeProject && activeProject.summary && (
+                  <div className="mb-10">
+                    <span className="text-xs font-bold tracking-widest text-text-secondary uppercase block mb-3">Overview</span>
+                    <p className="text-sm text-text-secondary font-medium leading-relaxed">{activeProject.summary}</p>
+                  </div>
+                )}
+
                 <div>
                   <span className="text-xs font-bold tracking-widest text-text-secondary uppercase block mb-5">Key Features</span>
                   <ul className="space-y-4">
@@ -197,36 +209,77 @@ export default function WordPress() {
   )
 }
 
-// TODO: placeholders, replace with the real WordPress projects
 const wordpressProjects = [
   {
     index: 0,
-    imagePath: "/images/hero.jpg",
-    title: "Client Business Website",
-    shortDescription: "Placeholder description. Replace this with a short summary of the site you built, who it was for, and what it needed to do.",
-    createdAt: "2026-01-15",
-    features: ["Custom Theme", "Responsive Design", "WooCommerce Integration"],
-    tech: ["WordPress", "Elementor", "PHP", "WooCommerce"],
-    liveDemoUrl: "#",
+    imagePath: "/images/linkora.png", // fallback if embedUrl is removed
+    embedUrl: "https://linkora.com.ph",
+    title: "LinkOra",
+    shortDescription: "Built a WordPress showcase website for a faith-inspired beaded bracelet brand, presenting its collection and sending shoppers to the Somago store to buy.",
+    summary: "Built for LinkOra, a small brand selling faith-inspired beaded bracelets and gifts. The brand needed a polished, mobile-friendly online presence to present its story and featured products, and to send visitors to its Somago store to purchase, with a contact form that reliably delivers inquiries to the owner's inbox.",
+    createdAt: "2026",
+    features: ["Elementor Page Design", "WooCommerce Product Showcase", "Links to Somago Store for Purchase", "SMTP Contact Form Delivery", "Responsive Design"],
+    tech: ["WordPress", "Elementor", "WooCommerce", "SMTP"],
+    liveDemoUrl: "https://linkora.com.ph",
   },
   {
     index: 1,
-    imagePath: "/images/hero.jpg",
-    title: "Restaurant Landing Page",
-    shortDescription: "Placeholder description. Replace this with a short summary of the site you built, who it was for, and what it needed to do.",
-    createdAt: "2026-03-10",
-    features: ["Elementor Build", "Online Menu", "SEO Optimization"],
-    tech: ["WordPress", "Elementor", "SEO"],
-    liveDemoUrl: "#",
+    imagePath: "/images/axod.png", // fallback if embedUrl is removed
+    embedUrl: "https://axod.ph",
+    title: "AXOD Innovation Corporation",
+    shortDescription: "Built a WordPress website for AXOD Innovation Corporation, presenting its 5G push-to-talk radios, current promos, and a clear path for shoppers to browse and buy.",
+    summary: "Built for AXOD Innovation Corporation, a company selling 5G push-to-talk radios that work worldwide on a SIM card. The site needed to present the product line and ongoing promos in a bold, mobile-friendly layout, point visitors to a clear Shop Now action, and deliver contact inquiries reliably to the company's inbox.",
+    createdAt: "2026",
+    features: ["Elementor Page Design", "WooCommerce Product Showcase", "Promos Section", "SMTP Contact Form Delivery", "Responsive Design"],
+    tech: ["WordPress", "Elementor", "WooCommerce", "SMTP"],
+    liveDemoUrl: "https://axod.ph",
   },
   {
     index: 2,
-    imagePath: "/images/hero.jpg",
-    title: "Online Store",
-    shortDescription: "Placeholder description. Replace this with a short summary of the site you built, who it was for, and what it needed to do.",
-    createdAt: "2025-11-02",
-    features: ["Product Catalog", "Payment Gateway", "Order Management"],
-    tech: ["WordPress", "WooCommerce", "Payment Gateway"],
-    liveDemoUrl: "#",
+    imagePath: "/images/iwash.png", // fallback if embedUrl is removed
+    embedUrl: "https://iwash.ph",
+    title: "iWash",
+    shortDescription: "Built a WordPress website for iWash, a self-service laundry brand, presenting its laundry services, current promos, and a clear path for customers to shop and get in touch.",
+    summary: "Built for iWash, a laundry business whose tagline is \"Laundry That Makes Your Life Easier\". The site needed a fresh, bold, mobile-friendly look to present its services, products, and ongoing promos, point visitors to a clear Shop Now action, and deliver contact inquiries reliably to the business's inbox.",
+    createdAt: "2026",
+    features: ["Elementor Page Design", "WooCommerce Product Showcase", "Promos Section", "SMTP Contact Form Delivery", "Responsive Design"],
+    tech: ["WordPress", "Elementor", "WooCommerce", "SMTP"],
+    liveDemoUrl: "https://iwash.ph",
+  },
+  {
+    index: 3,
+    imagePath: "/images/haf.png", // fallback if embedUrl is removed
+    embedUrl: "https://haf.ph",
+    title: "Happy Plate",
+    shortDescription: "Built a WordPress website for Happy Plate, a glassware and tableware seller, presenting its shops, featured brands such as Goomin, and current promos, with a clear path for shoppers to browse and buy.",
+    summary: "Built for Happy Plate, a seller of premium glassware, tableware, and tea collections. The site needed an elegant, mobile-friendly layout to showcase its featured brands and ongoing promos, point visitors to a clear Shop Now action, and deliver contact inquiries reliably to the company's inbox.",
+    createdAt: "2026",
+    features: ["Elementor Page Design", "WooCommerce Product Showcase", "Brands and Promos Sections", "Homepage Image Slider", "SMTP Contact Form Delivery", "Responsive Design"],
+    tech: ["WordPress", "Elementor", "WooCommerce", "SMTP"],
+    liveDemoUrl: "https://haf.ph",
+  },
+  {
+    index: 4,
+    imagePath: "/images/ptg.png", // fallback if embedUrl is removed
+    embedUrl: "https://hnb.com.ph",
+    title: "PTG Probio+ Glow",
+    shortDescription: "Built a WordPress website for PTG, the brand behind Probio+ Glow probiotic and tremella drink sticks, presenting the product, how to use it, and a clear path for shoppers to find the shops and get in touch.",
+    summary: "Built for PTG, the brand behind Probio+ Glow, a probiotic and tremella wellness drink in 10g stick packs. The site needed a warm, mobile-friendly look to present the product through a homepage slider, guide visitors to its shops, and offer customer login and registration.",
+    createdAt: "2026",
+    features: ["Elementor Page Design", "Homepage Image Slider", "Shops Page", "Login / Register", "Responsive Design"],
+    tech: ["WordPress", "Elementor", "WooCommerce"],
+    liveDemoUrl: "https://hnb.com.ph",
+  },
+  {
+    index: 5,
+    imagePath: "/images/sdpz.png", // fallback if embedUrl is removed
+    embedUrl: "https://sdpz.com.ph",
+    title: "Zoujian",
+    shortDescription: "Built a WordPress website for Zoujian, a cleaning and personal care brand known for its cleansing cotton towels and foaming hand wash, with a product search and a clear path for shoppers to browse and buy.",
+    summary: "Built for Zoujian, a brand of cleansing cotton towels and foaming hand wash whose tagline is \"Gentle on Skin. Tough on Germs.\". The site needed a clean, bright, mobile-friendly look to present its products through a homepage slider, let visitors search the catalog, and point them to a clear Shop Now action.",
+    createdAt: "2026",
+    features: ["Elementor Page Design", "Homepage Image Slider", "Product Search", "Shop Now Call to Action", "Responsive Design"],
+    tech: ["WordPress", "Elementor", "WooCommerce"],
+    liveDemoUrl: "https://sdpz.com.ph",
   },
 ]
