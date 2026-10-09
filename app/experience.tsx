@@ -7,6 +7,7 @@ interface ExperienceItem {
   id: number
   company: string
   role: string
+  subRole?: string
   date: string
   description: string
   skills: string[]
@@ -16,7 +17,8 @@ const experiences: ExperienceItem[] = [
   {
     id: 1,
     company: "Somago International Corporation",
-    role: "Web Developer / Team Leader",
+    role: "Full Stack Developer",
+    subRole: "Team Leader",
     date: "May 2026 - Present",
     description: "Developed and maintained full-stack web applications, including Somago Portal using Spring Boot and SALAMA Language Center using Laravel 12. Built RESTful APIs, implemented backend services, authentication, business logic, and MySQL database integration. Developed frontend interfaces using React 19, Next.js, and Tailwind CSS.\n\nDeveloped and maintained six WordPress websites using themes, plugins, and visual page builders. Worked with Docker-based CI/CD pipelines, Gitea Actions, GitHub, and Alibaba Cloud ECS for application deployment and version control. Led technical tasks and coordinated development activities as Team Leader.",
     skills: ["Laravel", "Spring Boot", "React", "Next.js", "Tailwind CSS", "MySQL", "WordPress", "Docker", "CI/CD", "Gitea", "GitHub", "Alibaba Cloud ECS"],
@@ -89,7 +91,10 @@ export default function Experience() {
               <div className="md:col-span-3 flex flex-col relative">
                 {/* Timeline marker dot: centered on the line, which sits 2rem left of the text column */}
                 <span className="hidden md:block absolute -left-8 top-[9px] -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-text-primary ring-4 ring-background" />
-                <h4 className="text-2xl font-bold text-text-primary tracking-tight mb-1 group-hover/item:text-text-primary transition-colors">{exp.role}</h4>
+                <h4 className="text-2xl font-bold text-text-primary tracking-tight mb-1 group-hover/item:text-text-primary transition-colors">
+                  {exp.role}
+                  {exp.subRole && <span className="ml-3 text-base font-medium text-text-secondary/70 tracking-normal">- {exp.subRole}</span>}
+                </h4>
                 <h5 className="text-sm font-bold text-text-secondary tracking-wide uppercase mb-6">{exp.company}</h5>
 
                 <p className="text-base text-text-secondary font-medium leading-relaxed mb-6 whitespace-pre-line">{exp.description}</p>

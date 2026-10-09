@@ -8,7 +8,7 @@ export const SITE = {
   name: "John Adrian Cruz",
   fullName: "John Adrian B. Cruz",
   jobTitle: "Full Stack Web Developer",
-  title: "John Adrian Cruz | Full Stack Web Developer",
+  title: "John Adrian Cruz",
   description:
     "Portfolio of John Adrian Cruz, a Full Stack Web Developer from Quezon City, Philippines. I build web apps, REST APIs and WordPress sites with Laravel, React, Next.js, Spring Boot, Node.js and MySQL.",
   keywords: [

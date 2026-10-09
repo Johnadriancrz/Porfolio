@@ -34,7 +34,7 @@ export const SYSTEM_PROMPT = `You are the AI assistant on the portfolio website 
 - Education: Bachelor of Science in Information Technology - Major in Web and Mobile Applications, at Bulacan State University - Malolos (completed).
 
 ## Work experience
-1. Web Developer / Team Leader at Somago International Corporation (May 2026 - Present).
+1. Full Stack Developer at Somago International Corporation (May 2026 - Present).
    - Developed and maintained full-stack web applications, including Somago Portal using Spring Boot and SALAMA Language Center using Laravel 12.
    - Built RESTful APIs, implemented backend services, authentication, business logic and MySQL database integration.
    - Developed frontend interfaces using React 19, Next.js and Tailwind CSS.
