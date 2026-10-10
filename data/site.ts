@@ -1,16 +1,33 @@
 // Single source of truth for site-wide identity and SEO values (layout, sitemap, robots, manifest, JSON-LD).
-// Set NEXT_PUBLIC_BASE_URL to the production domain (e.g. https://yourdomain.com) so canonical URLs, the sitemap
-// and social previews point to the real site.
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, "")
+// Canonical production origin. Used whenever NEXT_PUBLIC_BASE_URL is unset (e.g. on Vercel without the env var).
+const PRODUCTION_URL = "https://www.johnadriancruz.xyz"
+
+// NEXT_PUBLIC_BASE_URL may override the origin (e.g. a staging domain), but a local/non-HTTPS value is ignored so
+// canonical URLs, the sitemap and robots.txt can never point at localhost.
+function resolveSiteUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_BASE_URL?.trim()
+  if (!raw) return PRODUCTION_URL
+
+  try {
+    const url = new URL(raw)
+    const isLocal = ["localhost", "127.0.0.1", "0.0.0.0", "[::1]"].includes(url.hostname) || url.hostname.endsWith(".local")
+    if (url.protocol !== "https:" || isLocal) return PRODUCTION_URL
+    return url.origin
+  } catch {
+    return PRODUCTION_URL
+  }
+}
+
+export const SITE_URL = resolveSiteUrl()
 
 export const SITE = {
   name: "John Adrian Cruz",
   fullName: "John Adrian B. Cruz",
   jobTitle: "Full Stack Web Developer",
-  title: "John Adrian Cruz",
+  title: "John Adrian Cruz | Full Stack Web Developer Portfolio",
   description:
-    "Portfolio of John Adrian Cruz, a Full Stack Web Developer from Quezon City, Philippines. I build web apps, REST APIs and WordPress sites with Laravel, React, Next.js, Spring Boot, Node.js and MySQL.",
+    "Portfolio of John Adrian Cruz, a Full Stack Web Developer in the Philippines. Web apps, REST APIs and WordPress sites built with Laravel, React and Next.js.",
   keywords: [
     "John Adrian Cruz",
     "Adrian Cruz",

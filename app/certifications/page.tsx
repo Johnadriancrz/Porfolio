@@ -5,10 +5,30 @@ import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import FadeDown from "@/components/animations/FadeDown"
 import { certifications } from "@/data/certifications"
+import { SITE } from "@/data/site"
+
+const CERT_TITLE = "Certifications"
+const CERT_DESCRIPTION = `Professional certifications and credentials earned by ${SITE.name}, ${SITE.jobTitle}.`
 
 export const metadata: Metadata = {
-  title: "Certifications",
+  title: CERT_TITLE,
+  description: CERT_DESCRIPTION,
   alternates: { canonical: "/certifications" },
+  openGraph: {
+    type: "website",
+    locale: "en_PH",
+    url: "/certifications",
+    title: `${CERT_TITLE} | ${SITE.name}`,
+    description: CERT_DESCRIPTION,
+    siteName: `${SITE.name} Portfolio`,
+    images: [{ url: "/images/og.png", width: 1200, height: 630, alt: `${SITE.name}, ${SITE.jobTitle}` }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${CERT_TITLE} | ${SITE.name}`,
+    description: CERT_DESCRIPTION,
+    images: ["/images/og.png"],
+  },
 }
 
 export default function CertificationsPage() {
