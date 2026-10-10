@@ -2,8 +2,6 @@
 
 A modern, interactive, and responsive personal portfolio website built to showcase projects, skills, and experience.
 
-## 🌐 Live Demo
-
 
 ## 🚀 Features
 
@@ -28,7 +26,7 @@ First, clone the repository and install the dependencies:
 git clone https://github.com/RyHarJr/portofoliov2.git
 
 # Navigate to the project directory
-cd portofoliov2
+cd portfolio
 
 # Install dependencies
 npm install
